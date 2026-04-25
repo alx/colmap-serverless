@@ -1,0 +1,113 @@
+{
+  "title": "RunSplat COLMAP — Video to 3D Reconstruction Workspace",
+  "description": "Extract frames from MP4 video(s) and run COLMAP 4.0.3 structure-from-motion to produce a camera-pose workspace (colmap/ directory, tar.gz base64) ready for 3D Gaussian Splatting training.",
+  "type": "serverless",
+  "category": "image",
+
+  "config": {
+    "runsOn": "GPU",
+    "containerDiskInGb": 20,
+    "gpuCount": 1,
+    "gpuIds": "ADA_24",
+    "allowedCudaVersions": [
+      "12.9"
+    ],
+
+    "env": [
+      {
+        "key": "NUM_FRAMES",
+        "input": {
+          "name": "Max frames to extract",
+          "type": "number",
+          "description": "Maximum number of frames to extract from the video, spread evenly across duration.",
+          "min": 30,
+          "max": 500,
+          "default": 150,
+          "advanced": false
+        }
+      },
+      {
+        "key": "MATCHING_TYPE",
+        "input": {
+          "name": "Feature matching strategy",
+          "type": "string",
+          "description": "Sequential is faster and works well for video. Exhaustive is more thorough for unordered image sets.",
+          "options": [
+            {"label": "Sequential (recommended for video)", "value": "sequential"},
+            {"label": "Exhaustive (for unordered image sets)", "value": "exhaustive"}
+          ],
+          "default": "sequential",
+          "advanced": false
+        }
+      },
+      {
+        "key": "CAMERA_MODEL",
+        "input": {
+          "name": "Camera model",
+          "type": "string",
+          "description": "COLMAP camera model. SIMPLE_RADIAL works for most video. Use OPENCV_FISHEYE for wide-angle drone cameras.",
+          "options": [
+            {"label": "SIMPLE_RADIAL (standard video)", "value": "SIMPLE_RADIAL"},
+            {"label": "OPENCV (known lens distortion)", "value": "OPENCV"},
+            {"label": "OPENCV_FISHEYE (wide-angle/fisheye)", "value": "OPENCV_FISHEYE"},
+            {"label": "PINHOLE (calibrated, no distortion)", "value": "PINHOLE"}
+          ],
+          "default": "SIMPLE_RADIAL",
+          "advanced": true
+        }
+      },
+      {
+        "key": "QUALITY",
+        "input": {
+          "name": "Feature extraction quality",
+          "type": "string",
+          "description": "Higher quality extracts more features but takes longer.",
+          "options": [
+            {"label": "Low (fastest)", "value": "low"},
+            {"label": "Medium", "value": "medium"},
+            {"label": "High (recommended)", "value": "high"},
+            {"label": "Extreme (slowest)", "value": "extreme"}
+          ],
+          "default": "high",
+          "advanced": true
+        }
+      }
+    ],
+
+    "presets": [
+      {
+        "name": "Standard drone video",
+        "defaults": {
+          "NUM_FRAMES": "150",
+          "MATCHING_TYPE": "sequential",
+          "CAMERA_MODEL": "SIMPLE_RADIAL",
+          "QUALITY": "high"
+        }
+      },
+      {
+        "name": "Wide-angle / fisheye drone",
+        "defaults": {
+          "NUM_FRAMES": "150",
+          "MATCHING_TYPE": "sequential",
+          "CAMERA_MODEL": "OPENCV_FISHEYE",
+          "QUALITY": "high"
+        }
+      },
+      {
+        "name": "Dense / thorough reconstruction",
+        "defaults": {
+          "NUM_FRAMES": "300",
+          "MATCHING_TYPE": "exhaustive",
+          "CAMERA_MODEL": "SIMPLE_RADIAL",
+          "QUALITY": "extreme"
+        }
+      }
+    ]
+  },
+
+  "_metadata": {
+    "colmap_version": "4.0.3",
+    "cuda_version": "12.9.0",
+    "source_repo": "https://github.com/alx/colmap-serverless"
+  }
+}
