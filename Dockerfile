@@ -1,8 +1,15 @@
-# ── Stage 1: build COLMAP 4.0.3 from source ──────────────────────────────────
-# Minimum CUDA version for ubuntu24.04 NVIDIA images is 12.4.1.
-# Compiling with 12.4.1 means the runtime binary requires CUDA >= 12.4 on the host,
-# which allows allowedCudaVersions to cover 12.4 through 12.9 on RunPod.
-FROM nvidia/cuda:12.4.1-devel-ubuntu24.04 AS colmap-builder
+# ── Build args ────────────────────────────────────────────────────────────────
+# cuda12.5 target: CUDA_VERSION=12.5.1  UBUNTU_VERSION=24.04  (default/latest)
+# cuda12.4 target: CUDA_VERSION=12.4.1  UBUNTU_VERSION=22.04
+#
+# ubuntu24.04 images start at CUDA 12.5.1 on Docker Hub.
+# ubuntu22.04 goes back to CUDA 12.4.1, covering older host drivers.
+ARG CUDA_VERSION=12.5.1
+ARG UBUNTU_VERSION=24.04
+
+# ── Stage 1: build COLMAP 4.0.3 from source ───────────────────────────────────
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS colmap-builder
+ARG UBUNTU_VERSION=24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
@@ -30,20 +37,32 @@ RUN git clone --depth 1 --branch 4.0.3 \
     && ninja -j$(nproc) install
 
 # ── Stage 2: runtime ──────────────────────────────────────────────────────────
-# Same base version as the build stage — host driver needs CUDA >= 12.4.
-FROM nvidia/cuda:12.4.1-base-ubuntu24.04
+FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu${UBUNTU_VERSION}
+ARG UBUNTU_VERSION=24.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 ENV QT_QPA_PLATFORM=offscreen
 
-RUN apt-get update && apt-get install -y \
-    ffmpeg python3 python3-pip curl \
-    libboost-program-options1.83.0 libgl1 libglib2.0-0 \
-    libmetis5 libceres4t64 libopenimageio2.4t64 libglew2.2 \
-    libgoogle-glog0v6t64 \
-    libqt6core6 libqt6gui6 libqt6widgets6 libqt6openglwidgets6 libqt6svg6 \
-    libcurl4 libssl3t64 \
-    libopenblas0 \
+# Runtime package names differ between ubuntu22.04 and ubuntu24.04.
+# ubuntu24.04 appended t64 suffixes and bumped library versions.
+RUN apt-get update && \
+    if [ "$UBUNTU_VERSION" = "24.04" ]; then \
+      apt-get install -y \
+        ffmpeg python3 python3-pip curl \
+        libboost-program-options1.83.0 libgl1 libglib2.0-0 \
+        libmetis5 libceres4t64 libopenimageio2.4t64 libglew2.2 \
+        libgoogle-glog0v6t64 \
+        libqt6core6 libqt6gui6 libqt6widgets6 libqt6openglwidgets6 libqt6svg6 \
+        libcurl4 libssl3t64 libopenblas0; \
+    else \
+      apt-get install -y \
+        ffmpeg python3 python3-pip curl \
+        libboost-program-options1.74.0 libgl1 libglib2.0-0 \
+        libmetis5 libceres2 libopenimageio2.2 libglew2.2 \
+        libgoogle-glog0v5 \
+        libqt6core6 libqt6gui6 libqt6widgets6 libqt6openglwidgets6 libqt6svg6 \
+        libcurl4 libssl3 libopenblas0; \
+    fi \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=colmap-builder /colmap-install/ /usr/local/
