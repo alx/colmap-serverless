@@ -1,5 +1,8 @@
 # ── Stage 1: build COLMAP 4.0.3 from source ──────────────────────────────────
-FROM nvidia/cuda:12.9.0-devel-ubuntu24.04 AS colmap-builder
+# Minimum CUDA version for ubuntu24.04 NVIDIA images is 12.4.1.
+# Compiling with 12.4.1 means the runtime binary requires CUDA >= 12.4 on the host,
+# which allows allowedCudaVersions to cover 12.4 through 12.9 on RunPod.
+FROM nvidia/cuda:12.4.1-devel-ubuntu24.04 AS colmap-builder
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
@@ -10,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     libsqlite3-dev libglew-dev \
     qt6-base-dev libqt6opengl6-dev libqt6openglwidgets6 libqt6svg6-dev \
     libcgal-dev libceres-dev libcurl4-openssl-dev libssl-dev \
-    libmkl-full-dev \
+    libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Required by OpenImageIO CMake config even when OpenCV support is unused
@@ -24,11 +27,11 @@ RUN git clone --depth 1 --branch 4.0.3 \
         -DCMAKE_INSTALL_PREFIX=/colmap-install \
         -DONNX_ENABLED=OFF \
         -DTESTS_ENABLED=OFF \
-        -DBLA_VENDOR=Intel10_64lp \
     && ninja -j$(nproc) install
 
 # ── Stage 2: runtime ──────────────────────────────────────────────────────────
-FROM nvidia/cuda:12.9.0-base-ubuntu24.04
+# Same base version as the build stage — host driver needs CUDA >= 12.4.
+FROM nvidia/cuda:12.4.1-base-ubuntu24.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 ENV QT_QPA_PLATFORM=offscreen
@@ -40,7 +43,7 @@ RUN apt-get update && apt-get install -y \
     libgoogle-glog0v6t64 \
     libqt6core6 libqt6gui6 libqt6widgets6 libqt6openglwidgets6 libqt6svg6 \
     libcurl4 libssl3t64 \
-    libmkl-intel-lp64 libmkl-intel-thread libmkl-core libomp5 \
+    libopenblas0 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=colmap-builder /colmap-install/ /usr/local/

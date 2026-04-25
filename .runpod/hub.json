@@ -10,7 +10,7 @@
     "gpuCount": 1,
     "gpuIds": "ADA_24",
     "allowedCudaVersions": [
-      "12.9"
+      "12.9", "12.8", "12.7", "12.6", "12.5", "12.4"
     ],
 
     "env": [
@@ -107,7 +107,8 @@
 
   "_metadata": {
     "colmap_version": "4.0.3",
-    "cuda_version": "12.9.0",
+    "cuda_build_version": "12.4.1",
+    "cuda_min_host_driver": "12.4",
     "source_repo": "https://github.com/alx/colmap-serverless"
   }
 }
