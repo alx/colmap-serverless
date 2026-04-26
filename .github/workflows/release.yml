@@ -62,3 +62,20 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          body: |
+            ## Docker images
+
+            ```bash
+            # CUDA 12.5 · Ubuntu 24.04 (recommended)
+            docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}
+            docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-cuda12.5
+
+            # CUDA 12.4 · Ubuntu 22.04 (older driver support)
+            docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-cuda12.4
+            ```
+
+            Run locally:
+            ```bash
+            docker run --rm --gpus all ghcr.io/alx/colmap-serverless:${{ env.VERSION }} \
+              python3 handler.py --test_input '{"input":{"video_url":"<your-video-url>"}}'
+            ```

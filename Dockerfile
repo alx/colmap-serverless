@@ -69,12 +69,13 @@ COPY --from=colmap-builder /colmap-install/ /usr/local/
 
 WORKDIR /app
 RUN if [ "$UBUNTU_VERSION" = "24.04" ]; then \
-      pip3 install --no-cache-dir --break-system-packages runpod; \
+      pip3 install --no-cache-dir --break-system-packages runpod requests; \
     else \
-      pip3 install --no-cache-dir runpod; \
+      pip3 install --no-cache-dir runpod requests; \
     fi
 
 COPY scripts/colmap_pipeline.py /app/scripts/colmap_pipeline.py
+COPY scripts/gofile_downloader.py /app/scripts/gofile_downloader.py
 COPY handler.py /app/handler.py
 
 CMD ["python3", "-u", "handler.py"]

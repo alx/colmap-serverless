@@ -1,13 +1,29 @@
 import base64
+import os
+import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
 import runpod
 
 COLMAP_VERSION = "4.0.3"
+
+
+def _download_gofile(url, dest):
+    sys.path.insert(0, "/app/scripts")
+    from gofile_downloader import Manager as _GofileManager  # noqa: PLC0415
+    with tempfile.TemporaryDirectory() as dl_dir:
+        os.environ["GF_DOWNLOAD_DIR"] = dl_dir
+        _GofileManager(url_or_file=url).run()
+        mp4s = sorted(Path(dl_dir).rglob("*.mp4"))
+        if not mp4s:
+            raise RuntimeError(f"No MP4 found in gofile share: {url}")
+        shutil.move(str(mp4s[0]), str(dest))
 
 
 def handler(event):
@@ -40,7 +56,10 @@ def handler(event):
         for i, url in enumerate(video_urls):
             dest = input_dir / f"video_{i:02d}.mp4"
             print(f"Downloading {url} → {dest.name}", flush=True)
-            urllib.request.urlretrieve(url, dest)
+            if urllib.parse.urlparse(url).netloc in ("gofile.io", "www.gofile.io"):
+                _download_gofile(url, dest)
+            else:
+                urllib.request.urlretrieve(url, dest)
 
         cmd = [
             "python3", "/app/scripts/colmap_pipeline.py",
