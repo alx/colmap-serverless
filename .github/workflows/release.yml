@@ -82,13 +82,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ github.ref_name }}
         run: |
-          gh release create "$VERSION" \
-            --title "$VERSION" \
-            --notes "## Docker Images
+          cat > /tmp/release-notes.md << EOF
+          ## Docker Images
 
-\`\`\`
-ghcr.io/alx/colmap-serverless:${VERSION}-cuda12.5  (Ubuntu 24.04, default)
-ghcr.io/alx/colmap-serverless:${VERSION}-cuda12.4  (Ubuntu 22.04)
-ghcr.io/alx/colmap-serverless:${VERSION}            → cuda12.5
-ghcr.io/alx/colmap-serverless:latest                → cuda12.5
-\`\`\`"
+          \`\`\`
+          ghcr.io/alx/colmap-serverless:${VERSION}-cuda12.5  (Ubuntu 24.04, default)
+          ghcr.io/alx/colmap-serverless:${VERSION}-cuda12.4  (Ubuntu 22.04)
+          ghcr.io/alx/colmap-serverless:${VERSION}            -> cuda12.5
+          ghcr.io/alx/colmap-serverless:latest                -> cuda12.5
+          \`\`\`
+          EOF
+          gh release create "$VERSION" --title "$VERSION" --notes-file /tmp/release-notes.md
