@@ -68,7 +68,11 @@ RUN apt-get update && \
 COPY --from=colmap-builder /colmap-install/ /usr/local/
 
 WORKDIR /app
-RUN pip3 install --no-cache-dir --break-system-packages runpod
+RUN if [ "$UBUNTU_VERSION" = "24.04" ]; then \
+      pip3 install --no-cache-dir --break-system-packages runpod; \
+    else \
+      pip3 install --no-cache-dir runpod; \
+    fi
 
 COPY scripts/colmap_pipeline.py /app/scripts/colmap_pipeline.py
 COPY handler.py /app/handler.py
