@@ -1,4 +1,6 @@
 #! /usr/bin/env python3
+# Vendored from https://github.com/ltsdw/gofile-downloader — MIT License
+# Copyright (c) 2022 ltsdw
 
 
 from os import getcwd, getenv, listdir, makedirs, name, path, rmdir
