@@ -15,7 +15,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     ccache cmake ninja-build build-essential git \
     libboost-program-options-dev libboost-graph-dev libboost-system-dev \
-    libeigen3-dev libopenimageio-dev openimageio-tools \
+    libeigen3-dev libopenimageio-dev openimageio-tools libopenexr-dev \
     libmetis-dev libgoogle-glog-dev libgtest-dev libgmock-dev \
     libsqlite3-dev libglew-dev \
     qt6-base-dev libqt6opengl6-dev libqt6openglwidgets6 libqt6svg6-dev \
@@ -30,11 +30,11 @@ RUN git clone --depth 1 --branch 4.0.3 \
     https://github.com/colmap/colmap.git /colmap \
     && cd /colmap && mkdir build && cd build \
     && cmake .. -GNinja \
-        -DCMAKE_CUDA_ARCHITECTURES=all-major \
+        "-DCMAKE_CUDA_ARCHITECTURES=50;60;70;80;90" \
         -DCMAKE_INSTALL_PREFIX=/colmap-install \
         -DONNX_ENABLED=OFF \
         -DTESTS_ENABLED=OFF \
-    && ninja -j$(nproc) install
+    && ninja -j2 install
 
 # ── Stage 2: runtime ──────────────────────────────────────────────────────────
 FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu${UBUNTU_VERSION}
