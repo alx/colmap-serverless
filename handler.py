@@ -38,15 +38,12 @@ def handler(event):
     matching     = str(inp.get("matching", "sequential"))
     camera_model = str(inp.get("camera_model", "SIMPLE_RADIAL"))
     seq_overlap  = int(inp.get("sequential_overlap", 10))
-    quality      = str(inp.get("quality", "high"))
     gpu          = bool(inp.get("gpu", True))
 
     if matching not in ("sequential", "exhaustive"):
         return {"error": f"matching must be 'sequential' or 'exhaustive', got: {matching}"}
     if camera_model not in ("SIMPLE_RADIAL", "RADIAL", "OPENCV", "OPENCV_FISHEYE", "PINHOLE"):
         return {"error": f"Unsupported camera_model: {camera_model}"}
-    if quality not in ("low", "medium", "high", "extreme"):
-        return {"error": f"quality must be low/medium/high/extreme, got: {quality}"}
 
     with tempfile.TemporaryDirectory() as tmp:
         project_dir = Path(tmp) / "project"
@@ -68,7 +65,6 @@ def handler(event):
             "--matching", matching,
             "--camera-model", camera_model,
             "--sequential-overlap", str(seq_overlap),
-            "--quality", quality,
         ]
         if gpu:
             cmd.append("--gpu")
