@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "lighthouse_quick",
+      "input": {
+        "video_url": "https://github.com/alx/runsplat/releases/download/v0.1.5/lighthouse.mp4",
+        "num_frames": 30,
+        "matching": "sequential",
+        "camera_model": "SIMPLE_RADIAL",
+        "quality": "low",
+        "gpu": true
+      },
+      "timeout": 900000
+    }
+  ],
+  "config": {
+    "gpuTypeId": "NVIDIA GeForce RTX 4090",
+    "gpuCount": 1,
+    "allowedCudaVersions": ["12.9", "12.8", "12.7", "12.6", "12.5", "12.4"]
+  }
+}

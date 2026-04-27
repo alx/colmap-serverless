@@ -1,5 +1,5 @@
 {
-  "title": "RunSplat COLMAP — Video to 3D Reconstruction Workspace",
+  "title": "COLMAP — Video to 3D Reconstruction Workspace",
   "description": "Extract frames from MP4 video(s) and run COLMAP 4.0.3 structure-from-motion to produce a camera-pose workspace (colmap/ directory, tar.gz base64) ready for 3D Gaussian Splatting training.",
   "type": "serverless",
   "category": "image",
