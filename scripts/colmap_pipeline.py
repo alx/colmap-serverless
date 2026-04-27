@@ -55,7 +55,6 @@ def run_colmap(
     matching: str,
     camera_model: str,
     sequential_overlap: int,
-    quality: str,
     feature_flag: str,
     matching_flag: str,
 ):
@@ -66,7 +65,6 @@ def run_colmap(
     database = colmap_dir / "database.db"
     colmap_env = {**os.environ, "QT_QPA_PLATFORM": "offscreen"}
 
-    quality_flag = feature_flag.replace(".use_gpu", ".quality")
     run([
         "colmap", "feature_extractor",
         "--database_path", str(database),
@@ -74,7 +72,6 @@ def run_colmap(
         "--ImageReader.single_camera", "1",
         "--ImageReader.camera_model", camera_model,
         f"--{feature_flag}", gpu_val,
-        f"--{quality_flag}", quality,
     ], env=colmap_env)
 
     matcher = "sequential_matcher" if matching == "sequential" else "exhaustive_matcher"
@@ -130,8 +127,6 @@ def main():
                         help="COLMAP camera model (default: SIMPLE_RADIAL)")
     parser.add_argument("--sequential-overlap", type=int, default=10,
                         help="Adjacent frames to match in sequential mode (default: 10)")
-    parser.add_argument("--quality", choices=["low", "medium", "high", "extreme"], default="high",
-                        help="Feature extraction quality (default: high)")
     parser.add_argument("--gpu", action="store_true",
                         help="Enable GPU SIFT extraction/matching")
     args = parser.parse_args()
@@ -169,7 +164,6 @@ def main():
         matching=args.matching,
         camera_model=args.camera_model,
         sequential_overlap=args.sequential_overlap,
-        quality=args.quality,
         feature_flag=feature_flag,
         matching_flag=matching_flag,
     )
