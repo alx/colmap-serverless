@@ -78,7 +78,11 @@ def handler(event):
 
         tarball = Path(tmp) / "colmap_workspace.tar.gz"
         with tarfile.open(tarball, "w:gz") as tar:
-            tar.add(colmap_dir, arcname="colmap")
+            # Only include undistorted images + sparse model.
+            # Excluding distorted/ avoids duplicate cameras.bin/images.bin entries
+            # that would cause Brush to pick the wrong (distorted) camera poses.
+            tar.add(colmap_dir / "images", arcname="colmap/images")
+            tar.add(colmap_dir / "sparse", arcname="colmap/sparse")
 
         workspace_b64 = base64.b64encode(tarball.read_bytes()).decode()
 
