@@ -43,6 +43,10 @@ jobs:
             ${{ env.REGISTRY }}:${{ env.VERSION }}-cuda12.5
             ${{ env.REGISTRY }}:${{ env.VERSION }}
             ${{ env.REGISTRY }}:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/alx/colmap-serverless
+            org.opencontainers.image.description=Serverless COLMAP 4.0.3 worker for RunPod (CUDA 12.5 · Ubuntu 24.04)
+            org.opencontainers.image.licenses=MIT
           cache-from: type=registry,ref=${{ env.REGISTRY }}:buildcache-cuda12.5
           cache-to: type=registry,ref=${{ env.REGISTRY }}:buildcache-cuda12.5,mode=max
 
@@ -56,6 +60,10 @@ jobs:
             UBUNTU_VERSION=22.04
           tags: |
             ${{ env.REGISTRY }}:${{ env.VERSION }}-cuda12.4
+          labels: |
+            org.opencontainers.image.source=https://github.com/alx/colmap-serverless
+            org.opencontainers.image.description=Serverless COLMAP 4.0.3 worker for RunPod (CUDA 12.4 · Ubuntu 22.04)
+            org.opencontainers.image.licenses=MIT
           cache-from: type=registry,ref=${{ env.REGISTRY }}:buildcache-cuda12.4
           cache-to: type=registry,ref=${{ env.REGISTRY }}:buildcache-cuda12.4,mode=max
 
