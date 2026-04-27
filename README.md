@@ -1,5 +1,7 @@
 # colmap-serverless
 
+[![Runpod](https://api.runpod.io/badge/alx/colmap-serverless)](https://console.runpod.io/hub/alx/colmap-serverless)
+
 Serverless [RunPod](https://www.runpod.io/) endpoint that runs [COLMAP](https://colmap.github.io/) structure-from-motion on drone or handheld MP4 video. Part of the [RunSplat](https://github.com/alx/runsplat) pipeline.
 
 **Input:** one or more MP4 video URLs  
