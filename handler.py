@@ -1,4 +1,3 @@
-import base64
 import os
 import shutil
 import subprocess
@@ -9,6 +8,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+import requests
 import runpod
 
 COLMAP_VERSION = "4.0.3"
@@ -24,6 +24,17 @@ def _download_gofile(url, dest):
         if not mp4s:
             raise RuntimeError(f"No MP4 found in gofile share: {url}")
         shutil.move(str(mp4s[0]), str(dest))
+
+
+def _upload_gofile(path: Path) -> str:
+    server = requests.get("https://api.gofile.io/servers", timeout=30).json()["data"]["servers"][0]["name"]
+    with open(path, "rb") as fh:
+        resp = requests.post(
+            f"https://{server}.gofile.io/uploadFile",
+            files={"file": fh},
+            timeout=300,
+        ).json()
+    return resp["data"]["downloadPage"]
 
 
 def handler(event):
@@ -84,10 +95,11 @@ def handler(event):
             tar.add(colmap_dir / "images", arcname="colmap/images")
             tar.add(colmap_dir / "sparse", arcname="colmap/sparse")
 
-        workspace_b64 = base64.b64encode(tarball.read_bytes()).decode()
+        print("Uploading workspace to GoFile.io…", flush=True)
+        workspace_url = _upload_gofile(tarball)
 
     return {
-        "colmap_workspace_b64": workspace_b64,
+        "colmap_workspace_url": workspace_url,
         "colmap_version": COLMAP_VERSION,
         "num_frames_extracted": frames_extracted,
         "status": "done",
