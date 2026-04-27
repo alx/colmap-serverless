@@ -66,6 +66,7 @@ def run_colmap(
     database = colmap_dir / "database.db"
     colmap_env = {**os.environ, "QT_QPA_PLATFORM": "offscreen"}
 
+    quality_flag = feature_flag.replace(".use_gpu", ".quality")
     run([
         "colmap", "feature_extractor",
         "--database_path", str(database),
@@ -73,7 +74,7 @@ def run_colmap(
         "--ImageReader.single_camera", "1",
         "--ImageReader.camera_model", camera_model,
         f"--{feature_flag}", gpu_val,
-        "--SiftExtraction.quality", quality,
+        f"--{quality_flag}", quality,
     ], env=colmap_env)
 
     matcher = "sequential_matcher" if matching == "sequential" else "exhaustive_matcher"
