@@ -130,42 +130,42 @@ jobs:
         with:
           generate_release_notes: true
           body: |
-                        ## Docker images
+            ## Docker images
 
             ### RunPod (original serverless handler)
-```bash
+            ```bash
             # CUDA 12.5 · Ubuntu 24.04 (recommended)
             docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}
             docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-cuda12.5
 
             # CUDA 12.4 · Ubuntu 22.04 (older driver support)
             docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-cuda12.4
-```
+            ```
 
             Run locally (RunPod):
-```bash
+              ```bash
             docker run --rm --gpus all ghcr.io/alx/colmap-serverless:${{ env.VERSION }} \
               python3 handler.py --test_input '{"input":{"video_url":"<your-video-url>"}}'
-```
+              ```
 
             ### Vast.ai (docker ENTRYPOINT mode)
-```bash
+            ```bash
             # CUDA 12.5 · Ubuntu 24.04 (recommended)
             docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-vastai
             docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-vastai-cuda12.5
 
             # CUDA 12.4 · Ubuntu 22.04 (older driver support)
             docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-vastai-cuda12.4
-```
+            ```
 
             Run locally (Vast.ai entrypoint):
-```bash
+              ```bash
             docker run --rm --gpus all \
               -e VIDEO_URL="<your-video-url>" \
               -e NUM_FRAMES=150 \
               -e MATCHING=sequential \
               ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-vastai
-```
+              ```
 
             Use the `vastai` tag in your Vast.ai template's **Image Path:Tag** field
             and set `VIDEO_URL` (+ any overrides) as environment variables.
