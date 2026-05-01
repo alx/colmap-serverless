@@ -10,6 +10,10 @@ permissions:
 
 env:
   REGISTRY: ghcr.io/alx/colmap-serverless
+  # Vast.ai entrypoint script baked into the vastai-specific image variants.
+  # The base ENTRYPOINT in the Dockerfile stays as-is (RunPod handler).
+  # We pass VASTAI=1 as a build-arg so the Dockerfile can branch on it.
+  VASTAI_BUILD_ARG: "VASTAI=1"
 
 jobs:
   publish:
@@ -30,8 +34,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # ===
+      # RunPod images
+      # ===
+
       # cuda12.5 is the default/latest variant — also tagged as <version> and latest
-      - name: Build and push cuda12.5 (ubuntu24.04)
+      - name: Build and push cuda12.5 (ubuntu24.04) [RunPod]
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -50,7 +58,7 @@ jobs:
           cache-from: type=registry,ref=${{ env.REGISTRY }}:buildcache-cuda12.5
           cache-to: type=registry,ref=${{ env.REGISTRY }}:buildcache-cuda12.5,mode=max
 
-      - name: Build and push cuda12.4 (ubuntu22.04)
+      - name: Build and push cuda12.4 (ubuntu22.04) [RunPod]
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -67,24 +75,97 @@ jobs:
           cache-from: type=registry,ref=${{ env.REGISTRY }}:buildcache-cuda12.4
           cache-to: type=registry,ref=${{ env.REGISTRY }}:buildcache-cuda12.4,mode=max
 
+      # ===
+      # Vast.ai images
+      #
+      # Uses the same Dockerfile but with VASTAI=1 build-arg.
+      # The Dockerfile must detect this and swap CMD to vastai_entrypoint.sh.
+      # Tag convention: ...-vastai-cuda12.5  /  ...-vastai (latest vastai)
+      # ===
+      
+      - name: Build and push cuda12.5 (ubuntu24.04) [Vast.ai]
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: |
+            CUDA_VERSION=12.5.1
+            UBUNTU_VERSION=24.04
+            VASTAI=1
+          tags: |
+            ${{ env.REGISTRY }}:${{ env.VERSION }}-vastai-cuda12.5
+            ${{ env.REGISTRY }}:${{ env.VERSION }}-vastai
+            ${{ env.REGISTRY }}:vastai
+          labels: |
+            org.opencontainers.image.source=https://github.com/alx/colmap-serverless
+            org.opencontainers.image.description=COLMAP 4.0.3 for Vast.ai docker-entrypoint mode (CUDA 12.5 · Ubuntu 24.04)
+            org.opencontainers.image.licenses=MIT
+          cache-from: type=registry,ref=${{ env.REGISTRY }}:buildcache-vastai-cuda12.5
+          cache-to:   type=registry,ref=${{ env.REGISTRY }}:buildcache-vastai-cuda12.5,mode=max
+
+      - name: Build and push cuda12.4 (ubuntu22.04) [Vast.ai]
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: |
+            CUDA_VERSION=12.4.1
+            UBUNTU_VERSION=22.04
+            VASTAI=1
+          tags: |
+            ${{ env.REGISTRY }}:${{ env.VERSION }}-vastai-cuda12.4
+          labels: |
+            org.opencontainers.image.source=https://github.com/alx/colmap-serverless
+            org.opencontainers.image.description=COLMAP 4.0.3 for Vast.ai docker-entrypoint mode (CUDA 12.4 · Ubuntu 22.04)
+            org.opencontainers.image.licenses=MIT
+          cache-from: type=registry,ref=${{ env.REGISTRY }}:buildcache-vastai-cuda12.4
+          cache-to:   type=registry,ref=${{ env.REGISTRY }}:buildcache-vastai-cuda12.4,mode=max
+
+      # ===
+      # Release notes
+      # ===
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           body: |
-            ## Docker images
+                        ## Docker images
 
-            ```bash
+            ### RunPod (original serverless handler)
+```bash
             # CUDA 12.5 · Ubuntu 24.04 (recommended)
             docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}
             docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-cuda12.5
 
             # CUDA 12.4 · Ubuntu 22.04 (older driver support)
             docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-cuda12.4
-            ```
+```
 
-            Run locally:
-            ```bash
+            Run locally (RunPod):
+```bash
             docker run --rm --gpus all ghcr.io/alx/colmap-serverless:${{ env.VERSION }} \
               python3 handler.py --test_input '{"input":{"video_url":"<your-video-url>"}}'
-            ```
+```
+
+            ### Vast.ai (docker ENTRYPOINT mode)
+```bash
+            # CUDA 12.5 · Ubuntu 24.04 (recommended)
+            docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-vastai
+            docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-vastai-cuda12.5
+
+            # CUDA 12.4 · Ubuntu 22.04 (older driver support)
+            docker pull ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-vastai-cuda12.4
+```
+
+            Run locally (Vast.ai entrypoint):
+```bash
+            docker run --rm --gpus all \
+              -e VIDEO_URL="<your-video-url>" \
+              -e NUM_FRAMES=150 \
+              -e MATCHING=sequential \
+              ghcr.io/alx/colmap-serverless:${{ env.VERSION }}-vastai
+```
+
+            Use the `vastai` tag in your Vast.ai template's **Image Path:Tag** field
+            and set `VIDEO_URL` (+ any overrides) as environment variables.

@@ -76,6 +76,14 @@ RUN if [ "$UBUNTU_VERSION" = "24.04" ]; then \
 
 COPY scripts/colmap_pipeline.py /app/scripts/colmap_pipeline.py
 COPY scripts/gofile_downloader.py /app/scripts/gofile_downloader.py
+COPY vastai_entrypoint.sh /app/vastai_entrypoint.sh
 COPY handler.py /app/handler.py
 
-CMD ["python3", "-u", "handler.py"]
+ARG VASTAI=0
+RUN if [ "$VASTAI" = "1" ]; then \
+      cp /app/vastai_entrypoint.sh /entrypoint.sh; \
+    else \
+      echo '#!/bin/sh\nexec python3 -u /app/handler.py "$@"' > /entrypoint.sh; \
+    fi
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
